@@ -41,6 +41,7 @@ Listen 1111
 	ServerName example.host.com
 </VirtualHost>
 ```
+El nombre del fichero generado será el mismo que el nombre del *deployable* y se le añadirá la extensión '.conf'
 
 ### www.ApacheConfFile
 Aquí indicamos un fichero de configuración que será ubicado en el directorio `/etc/apache2/sites-enabled`. Debe ser un fichero. Si se adjunta un zip no se extraerá y fallará el inicio de Apache.
