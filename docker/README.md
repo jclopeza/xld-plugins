@@ -108,28 +108,25 @@ $ docker pull lyhsoft-registry:8084/tutorial:4
 
 ### Creación de las máquinas
 
-Vamos a utilizar la herramienta `docker-machine` para crear tres máquinas virtuales con el **Docker Engine** instalado. Para ello:
+Vamos a utilizar la herramienta `docker-machine` para crear tres máquinas virtuales con el **Docker Engine** instalado. Además ejecutamos una serie scripts para permitir el acceso al Docker Registry local. Para ello:
 ```
-$ docker-machine create --driver virtualbox docker-dev
-$ docker-machine create --driver virtualbox docker-pre
-$ docker-machine create --driver virtualbox docker-pro
+echo "`cat <<EOF
+{
+  "insecure-registries": [
+    "lyhsoft-registry:8084"
+  ]
+}
+EOF`" > /tmp/daemon.json
+for env in dev pre pro
+do
+  docker-machine create --driver virtualbox docker-${env}
+  port=`docker-machine inspect --format='{{.Driver.SSHPort}}' docker-${env}`
+  scp -o "StrictHostKeyChecking=no" -P${port} -i ~/.docker/machine/machines/docker-${env}/id_rsa /tmp/daemon.json docker@localhost:/tmp
+  ssh -o "StrictHostKeyChecking=no" docker@localhost -p ${port} -i ~/.docker/machine/machines/docker-${env}/id_rsa 'sudo -- sh -c "mv /tmp/daemon.json /etc/docker/"'
+  docker-machine restart docker-${env}
+  ssh -o "StrictHostKeyChecking=no" docker@localhost -p ${port} -i ~/.docker/machine/machines/docker-${env}/id_rsa 'sudo -- sh -c "echo 10.0.2.2 lyhsoft-registry >> /etc/hosts"'
+done
 ```
-
-Para ver el puerto asignado a cada máquina ejecutamos
-```
-$ docker-machine inspect --format='{{.Driver.SSHPort}}' docker-dev
-$ docker-machine inspect --format='{{.Driver.SSHPort}}' docker-pre
-$ docker-machine inspect --format='{{.Driver.SSHPort}}' docker-pro
-```
-port=`docker-machine inspect --format='{{.Driver.SSHPort}}' docker-pre`
-ssh -o "StrictHostKeyChecking=no" docker@localhost -p ${port} -i ~/.docker/machine/machines/docker-pre/id_rsa 'sudo -- sh -c "echo 10.0.2.2 lyhsoft-registry >> /etc/hosts"'
-
 
 ### Registro de las máquinas en XL Deploy
 En el directorio `/home/jcla/.docker/machine/machines` habrá tres directorios, uno por cada máquina virtual. En cada uno de ellos estarán los certificados para acceder al docker engine. Con esta información creamos los correspondientes elementos de infraestructura en XL Deploy.
-
-
-Cogemos las credenciales y creamos máquinas en XLD
-Para que las máquinas funcionen con el registro privado:
-modificar el /etc/hosts de las máquinas virtuales
-crear el fichero /etc/docker/daemon.json en las máquinas virtuales
