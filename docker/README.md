@@ -130,3 +130,5 @@ done
 
 ### Registro de las máquinas en XL Deploy
 En el directorio `/home/jcla/.docker/machine/machines` habrá tres directorios, uno por cada máquina virtual. En cada uno de ellos estarán los certificados para acceder al docker engine. Con esta información creamos los correspondientes elementos de infraestructura en XL Deploy.
+
+## Docker en XL Deploy
