@@ -80,6 +80,17 @@ $ docker login -u admin lyhsoft-registry:8084
 }
 ```
 
+### Creación de un nuevo Docker Registry en XLD
+```
+# Creamos el registry privado en Nexus3 para Docker
+dockerRegistryProperties = {
+    'url': 'http://lyhsoft-registry:8084',
+    'username': 'admin',
+    'password': 'admin123'
+    }
+createResource("Configuration/lyhsoft-registry", "docker.Registry", dockerRegistryProperties)
+```
+
 ## Hacer push al nuevo repositorio
 Una vez que tengamos una imagen construída, podemos crear un tag que referencie al nuevo repositorio, por ejemplo:
 ```
@@ -93,3 +104,32 @@ $ docker push lyhsoft-registry:8084/tutorial:4
 $ docker pull lyhsoft-registry:8084/tutorial:4
 ```
 
+## Creación de los Docker Engine para diferentes entornos
+
+### Creación de las máquinas
+
+Vamos a utilizar la herramienta `docker-machine` para crear tres máquinas virtuales con el **Docker Engine** instalado. Para ello:
+```
+$ docker-machine create --driver virtualbox docker-dev
+$ docker-machine create --driver virtualbox docker-pre
+$ docker-machine create --driver virtualbox docker-pro
+```
+
+Para ver el puerto asignado a cada máquina ejecutamos
+```
+$ docker-machine inspect --format='{{.Driver.SSHPort}}' docker-dev
+$ docker-machine inspect --format='{{.Driver.SSHPort}}' docker-pre
+$ docker-machine inspect --format='{{.Driver.SSHPort}}' docker-pro
+```
+port=`docker-machine inspect --format='{{.Driver.SSHPort}}' docker-pre`
+ssh -o "StrictHostKeyChecking=no" docker@localhost -p ${port} -i ~/.docker/machine/machines/docker-pre/id_rsa 'sudo -- sh -c "echo 10.0.2.2 lyhsoft-registry >> /etc/hosts"'
+
+
+### Registro de las máquinas en XL Deploy
+En el directorio `/home/jcla/.docker/machine/machines` habrá tres directorios, uno por cada máquina virtual. En cada uno de ellos estarán los certificados para acceder al docker engine. Con esta información creamos los correspondientes elementos de infraestructura en XL Deploy.
+
+
+Cogemos las credenciales y creamos máquinas en XLD
+Para que las máquinas funcionen con el registro privado:
+modificar el /etc/hosts de las máquinas virtuales
+crear el fichero /etc/docker/daemon.json en las máquinas virtuales
