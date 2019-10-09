@@ -127,6 +127,15 @@ do
   ssh -o "StrictHostKeyChecking=no" docker@localhost -p ${port} -i ~/.docker/machine/machines/docker-${env}/id_rsa 'sudo -- sh -c "echo 10.0.2.2 lyhsoft-registry >> /etc/hosts"'
 done
 ```
+Para iniciar las máquinas una vez creadas ...
+```
+for env in dev pre pro
+do
+  docker-machine start docker-${env}
+  port=`docker-machine inspect --format='{{.Driver.SSHPort}}' docker-${env}`
+  ssh -o "StrictHostKeyChecking=no" docker@localhost -p ${port} -i ~/.docker/machine/machines/docker-${env}/id_rsa 'sudo -- sh -c "echo 10.0.2.2 lyhsoft-registry >> /etc/hosts"'
+done
+```
 
 ### Registro de las máquinas en XL Deploy
 En el directorio `/home/jcla/.docker/machine/machines` habrá tres directorios, uno por cada máquina virtual. En cada uno de ellos estarán los certificados para acceder al docker engine. Con esta información creamos los correspondientes elementos de infraestructura en XL Deploy.
