@@ -1,0 +1,149 @@
+---
+apiVersion: xl-deploy/v1
+kind: Applications
+spec:
+- directory: Applications/Applications/application-voting-app-docker
+  children:
+  - name: bdd-voting-app-docker
+    type: udm.Application
+    lastVersion: 1.0.0-B1
+    children:
+    - name: 1.0.0-B1
+      type: udm.DeploymentPackage
+      deployables:
+      - name: redis-container
+        type: docker.ContainerSpec
+        containerName: redis
+        image: lyhsoft-registry:8084/redis:alpine
+        networks:
+        - network-voting-app
+        volumeBindings:
+        - name: redis-volume
+          type: docker.MountedVolumeSpec
+          volumeName: redis-data
+          mountpoint: /data
+      - name: db-postgres-container
+        type: docker.ContainerSpec
+        containerName: db
+        image: lyhsoft-registry:8084/postgres:9.4
+        networks:
+        - network-voting-app
+        volumeBindings:
+        - name: db-postgres-volume
+          type: docker.MountedVolumeSpec
+          volumeName: db-data
+          mountpoint: /var/lib/postgresql/data
+  - name: front-voting-app-docker
+    type: udm.Application
+    lastVersion: 2.0.0-B2
+    children:
+    - name: 1.0.0-B1
+      type: udm.DeploymentPackage
+      deployables:
+      - name: vote-container
+        type: docker.ContainerSpec
+        containerName: vote
+        image: lyhsoft-registry:8084/examplevotingapp_vote:before
+        networks:
+        - network-voting-app
+        portBindings:
+        - name: vote-port
+          type: docker.PortSpec
+          hostPort: "5000"
+          containerPort: "80"
+      - name: result-container
+        type: docker.ContainerSpec
+        containerName: result
+        image: lyhsoft-registry:8084/examplevotingapp_result:before
+        networks:
+        - network-voting-app
+        portBindings:
+        - name: result-port
+          type: docker.PortSpec
+          hostPort: "5001"
+          containerPort: "80"
+    - name: 2.0.0-B2
+      type: udm.DeploymentPackage
+      deployables:
+      - name: result-container
+        type: docker.ContainerSpec
+        containerName: result
+        image: lyhsoft-registry:8084/examplevotingapp_result:before
+        networks:
+        - network-voting-app
+        portBindings:
+        - name: result-port
+          type: docker.PortSpec
+          hostPort: "5001"
+          containerPort: "80"
+      - name: vote-container
+        type: docker.ContainerSpec
+        containerName: vote
+        image: lyhsoft-registry:8084/examplevotingapp_vote:1
+        networks:
+        - network-voting-app
+        portBindings:
+        - name: vote-port
+          type: docker.PortSpec
+          hostPort: "5000"
+          containerPort: "80"
+  - name: worker-voting-app-docker
+    type: udm.Application
+    lastVersion: 1.0.0-B1
+    children:
+    - name: 1.0.0-B1
+      type: udm.DeploymentPackage
+      deployables:
+      - name: worker-container
+        type: docker.ContainerSpec
+        containerName: worker
+        image: lyhsoft-registry:8084/dockersamples/examplevotingapp_worker
+        networks:
+        - network-voting-app
+  - name: volumes-voting-app-docker
+    type: udm.Application
+    lastVersion: 1.0.0-B1
+    children:
+    - name: 1.0.0-B1
+      type: udm.DeploymentPackage
+      deployables:
+      - name: redis-data
+        type: docker.VolumeSpec
+        volumeName: redis-data
+      - name: db-data
+        type: docker.VolumeSpec
+        volumeName: db-data
+  - name: network-voting-app-docker
+    type: udm.Application
+    lastVersion: 1.0.0-B1
+    children:
+    - name: 1.0.0-B1
+      type: udm.DeploymentPackage
+      deployables:
+      - name: network-voting-app
+        type: docker.NetworkSpec
+        networkName: network-voting-app
+  - name: voting-app-docker
+    type: udm.Application
+    lastVersion: 2.0.0-B2
+    children:
+    - name: 1.0.0-B1
+      type: udm.CompositePackage
+      orchestrator:
+      - sequential-by-composite-package
+      packages:
+      - Applications/Applications/application-voting-app-docker/network-voting-app-docker/1.0.0-B1
+      - Applications/Applications/application-voting-app-docker/volumes-voting-app-docker/1.0.0-B1
+      - Applications/Applications/application-voting-app-docker/bdd-voting-app-docker/1.0.0-B1
+      - Applications/Applications/application-voting-app-docker/front-voting-app-docker/1.0.0-B1
+      - Applications/Applications/application-voting-app-docker/worker-voting-app-docker/1.0.0-B1
+    - name: 2.0.0-B2
+      type: udm.CompositePackage
+      orchestrator:
+      - sequential-by-composite-package
+      packages:
+      - Applications/Applications/application-voting-app-docker/network-voting-app-docker/1.0.0-B1
+      - Applications/Applications/application-voting-app-docker/volumes-voting-app-docker/1.0.0-B1
+      - Applications/Applications/application-voting-app-docker/bdd-voting-app-docker/1.0.0-B1
+      - Applications/Applications/application-voting-app-docker/front-voting-app-docker/2.0.0-B2
+      - Applications/Applications/application-voting-app-docker/worker-voting-app-docker/1.0.0-B1

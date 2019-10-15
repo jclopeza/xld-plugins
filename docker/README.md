@@ -141,3 +141,22 @@ done
 En el directorio `/home/jcla/.docker/machine/machines` habrá tres directorios, uno por cada máquina virtual. En cada uno de ellos estarán los certificados para acceder al docker engine. Con esta información creamos los correspondientes elementos de infraestructura en XL Deploy.
 
 ## Docker en XL Deploy
+
+### Application
+Tenemos la siguiente aplicación de ejemplo que despliega la aplicación 'voting-app'. Para cargarla en XL Deploy ejecutar
+```
+$ xl apply -f application.yaml
+```
+
+### Infrastructure
+La infraestructura está definida en el proyecto xld-scripts bajo la carpeta
+```
+xld-scripts/shared-configuration/docker-engines
+```
+Hay tres ficheros yaml que crearán los distintos contenedores `docker.Engine`
+
+### Enviroments
+Tenemos los siguientes entornos en los que se despliega la aplicación 'voting-app'. Para cargarla en XL Deploy ejecutar
+```
+$ xl apply -f environments.yaml
+```

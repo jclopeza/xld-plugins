@@ -1,0 +1,24 @@
+---
+apiVersion: xl-deploy/v1
+kind: Environments
+spec:
+- directory: Environments/application-voting-app-docker
+  children:
+  - directory: application-voting-app-docker-pre
+    children:
+    - name: application-voting-app-docker-pre
+      type: udm.Environment
+      members:
+      - Infrastructure/DockerEngines/docker-pre
+  - directory: application-voting-app-docker-dev
+    children:
+    - name: application-voting-app-docker-dev
+      type: udm.Environment
+      members:
+      - Infrastructure/DockerEngines/docker-dev
+  - directory: application-voting-app-docker-pro
+    children:
+    - name: application-voting-app-docker-pro
+      type: udm.Environment
+      members:
+      - Infrastructure/DockerEngines/docker-pro
